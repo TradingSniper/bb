@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BB Verifier</title>
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>BB Verifier</h1>
+  <div class="sub">Bollinger breakout / breakdown thesis verification &middot; sandbox only</div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="journal">Journal</button>
+  <button data-tab="data">Data</button>
+  <button data-tab="archive">Data Archive</button>
+  <button data-tab="settings">Settings</button>
+</nav>
+
+<main>
+<section id="tab-dashboard" class="tab active">
+  <div id="status-line" class="status">Loading bundled data&hellip;</div>
+  <div class="kpis">
+    <div class="kpi hero"><div class="kpi-label">Batting average</div><div class="kpi-val" id="k-ba">&ndash;</div><div class="kpi-sub" id="k-ba-sub"></div></div>
+    <div class="kpi"><div class="kpi-label">Signals</div><div class="kpi-val" id="k-sig">&ndash;</div></div>
+    <div class="kpi"><div class="kpi-label">Hits</div><div class="kpi-val hit" id="k-hit">&ndash;</div></div>
+    <div class="kpi"><div class="kpi-label">Misses</div><div class="kpi-val miss" id="k-miss">&ndash;</div></div>
+    <div class="kpi"><div class="kpi-label">Breakouts (up)</div><div class="kpi-val" id="k-up">&ndash;</div><div class="kpi-sub" id="k-up-sub"></div></div>
+    <div class="kpi"><div class="kpi-label">Breakdowns (down)</div><div class="kpi-val" id="k-dn">&ndash;</div><div class="kpi-sub" id="k-dn-sub"></div></div>
+    <div class="kpi"><div class="kpi-label">Expectancy (avg R)</div><div class="kpi-val" id="k-avgr">&ndash;</div><div class="kpi-sub" id="k-avgr-sub"></div></div>
+  </div>
+  <h2>Cumulative batting average</h2>
+  <canvas id="chart" height="180"></canvas>
+  <h2>Sector leaderboard</h2>
+  <table id="sector-table"><thead><tr><th>Sector</th><th>Signals</th><th>Per 100 days</th><th>Win %</th></tr></thead><tbody></tbody></table>
+  <h2>By symbol</h2>
+  <table id="symbol-table"><thead><tr><th>Symbol</th><th>Company</th><th>Close</th><th>Signals</th><th>Hits</th><th>Misses</th><th>Win %</th><th>Avg score</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="tab-journal" class="tab">
+  <div class="journal-filter" id="journal-filter"></div>
+  <table id="journal-table"><thead><tr><th>Date</th><th>Symbol</th><th>Dir</th><th>Score</th><th>Reasons</th><th>Result</th><th>Bars</th></tr></thead><tbody></tbody></table>
+  <div id="audit" class="audit hidden"></div>
+</section>
+
+<section id="tab-data" class="tab">
+  <h2>Loaded data</h2>
+  <div id="data-summary"></div>
+  <h2>Import Yahoo CSV</h2>
+  <p class="muted">Yahoo Finance &rarr; symbol page &rarr; Historical Data &rarr; Download. Columns: Date, Open, High, Low, Close, Adj Close, Volume.</p>
+  <div class="row"><input type="text" id="csv-symbol" placeholder="Symbol (e.g. XLV)"><input type="file" id="csv-file" accept=".csv,text/csv"></div>
+  <h2>Backup</h2>
+  <div class="row">
+    <button id="export-json">Export JSON</button>
+    <button id="export-csv">Export journal CSV</button>
+    <button id="import-json-btn">Import backup JSON</button>
+    <input type="file" id="import-json" accept=".json,application/json" class="hidden">
+  </div>
+  <p class="muted">Export before clearing browser data. Import restores data + journal on any device.</p>
+</section>
+
+<section id="tab-archive" class="tab">
+  <h2>Data archive</h2>
+  <p>Full max-history daily data for all 502 S&amp;P 500 symbols. Hosted permanently at <a href="https://github.com/TradingSniper/bb/releases/tag/data-archive-v1" target="_blank" rel="noopener">https://github.com/TradingSniper/bb/releases/tag/data-archive-v1</a></p>
+  <h2>What's included</h2>
+  <ul class="dl-list">
+    <li>Every S&amp;P 500 symbol (502 total), daily bars from its first trading day through 2026-09-04. Oldest bars reach 1970.</li>
+    <li>4,327,586 daily bars in total - date, open, high, low, close, adjusted close, volume.</li>
+    <li>Every dividend (48,424) and split (1,487) on record, in events.json.</li>
+    <li>Two formats below: clean CSVs (one per symbol, easiest to use) and the raw source JSON.</li>
+  </ul>
+
+  <h2>Clean CSVs (recommended)</h2>
+  <p class="muted">One CSV per symbol, plus events.json with every dividend and split. 70MB compressed in 3 parts - download all three, in this order:</p>
+  <ul class="dl-list">
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/1-csv.tar.gz.part00">1-csv.tar.gz.part00</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/2-csv.tar.gz.part01">2-csv.tar.gz.part01</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/3-csv.tar.gz.part02">3-csv.tar.gz.part02</a></li>
+  </ul>
+  <pre class="code">cat 1-csv.tar.gz.part00 2-csv.tar.gz.part01 3-csv.tar.gz.part02 &gt; yahoo_sp500_daily_csv.tar.gz
+tar xzf yahoo_sp500_daily_csv.tar.gz</pre>
+
+  <h2>Raw Yahoo JSON (full API responses)</h2>
+  <p class="muted">Unmodified source responses per symbol. 107MB compressed in 5 parts. The part numbering on GitHub is out of order - use this exact order:</p>
+  <ul class="dl-list">
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/4-json.tar.gz.part00">4-json.tar.gz.part00</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/6-json.tar.gz.part01">6-json.tar.gz.part01</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/5-json.tar.gz.part02">5-json.tar.gz.part02</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/1-json.tar.gz.part03">1-json.tar.gz.part03</a></li>
+    <li><a href="https://github.com/TradingSniper/bb/releases/download/data-archive-v1/2-json.tar.gz.part04">2-json.tar.gz.part04</a></li>
+  </ul>
+  <pre class="code">cat 4-json.tar.gz.part00 6-json.tar.gz.part01 5-json.tar.gz.part02 1-json.tar.gz.part03 2-json.tar.gz.part04 &gt; yahoo_sp500_raw_json.tar.gz
+tar xzf yahoo_sp500_raw_json.tar.gz</pre>
+
+  <h2>Coverage</h2>
+  <p class="muted">502 symbols: Industrials 77, Information Technology 70, Financials 70, Health Care 53, Consumer Discretionary 44, Consumer Staples 32, Real Estate 27, Utilities 23, Materials 22, Energy 17, Communication Services 17 (452 classified; 50 newer listings unclassified). Tick symbols use dash format (BRK-B, BF-B). To use a symbol here, unpack its CSV and import it on the Data tab.</p>
+</section>
+
+<section id="tab-settings" class="tab">
+  <h2>Signal rules</h2>
+  <div class="settings-grid">
+    <label>Bollinger length <input type="number" id="s-bblen" value="20" min="5" max="100"></label>
+    <label>Bollinger mult <input type="number" id="s-bbmult" value="2" step="0.1" min="0.5" max="5"></label>
+    <label>Squeeze lookback <input type="number" id="s-sqlook" value="126" min="20" max="500"></label>
+    <label>Squeeze percentile <input type="number" id="s-sqpct" value="0.20" step="0.05" min="0.05" max="0.9"></label>
+    <label>Volume multiple <input type="number" id="s-volmult" value="1.5" step="0.1" min="0" max="10"></label>
+    <label>ATR length <input type="number" id="s-atrlen" value="14" min="2" max="100"></label>
+    <label>Target (ATR mult) <input type="number" id="s-target" value="1.0" step="0.1" min="0.1" max="10"></label>
+    <label>Stop (ATR mult) <input type="number" id="s-stop" value="1.0" step="0.1" min="0.1" max="10"></label>
+    <label>Strategy <select id="s-mode"><option value="mr">Mean reversion (buy dips in uptrends)</option><option value="bo">Breakout following</option></select></label>
+    <label>Direction (breakout mode) <input type="text" id="s-dir-note" value="Long breakouts only" disabled></label>
+    <label>Horizon (bars) <input type="number" id="s-horizon" value="5" min="1" max="60"></label>
+    <label>Cooldown (bars) <input type="number" id="s-cooldown" value="5" min="0" max="60"></label>
+  </div>
+  <h2>Required confirmations</h2>
+  <div class="settings-grid">
+    <label><input type="checkbox" id="s-req-squeeze"> Require squeeze</label>
+    <label><input type="checkbox" id="s-req-vol"> Require volume confirm</label>
+    <label><input type="checkbox" id="s-req-trend"> Require trend align (SMA50)</label>
+    <label><input type="checkbox" id="s-excl-news"> Exclude news days (&gt;4% move)</label>
+  </div>
+  <h2>Presets</h2>
+  <div class="row">
+    <button id="preset-verified">Verified default (stop 3x, horizon 30)</button>
+    <button id="preset-aggressive">Aggressive (stop 3.5x, horizon 40)</button>
+  </div>
+  <p class="muted" id="preset-note">Aggressive is parked, not default: OOS 79.1% win rate, +0.36R avg, wider stops and longer holds - high risk, high reward. Loading a preset fills the fields; click Apply and re-run to use it.</p>
+  <div class="row"><button id="apply-settings">Apply and re-run</button><button id="reset-settings">Reset defaults</button></div>
+  <h2>Backtesting universe</h2>
+  <p class="muted" id="universe-list"></p>
+  <h2>How a hit is scored</h2>
+  <p class="muted" id="rules-explainer"></p>
+</section>
+</main>
+
+<footer>Sandbox verification tool. Not investment advice. No brokerage connection, no orders, no real funds.</footer>
+<script src="1-bundle_a.js"></script>
+<script src="2-bundle_b.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
